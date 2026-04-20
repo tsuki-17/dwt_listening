@@ -1,0 +1,1482 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AI沉浸式精听伴侣</title>
+    <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+SC:wght@400;500;700&display=swap" rel="stylesheet">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        :root {
+            --primary-green: #00B07D;
+            --light-green: #E8F8F2;
+            --dark-green: #008C63;
+            --bg-gray: #F5F7FA;
+            --text-dark: #1A1D21;
+            --text-muted: #6B7280;
+            --white: #FFFFFF;
+            --shadow: 0 4px 20px rgba(0, 176, 125, 0.15);
+            --shadow-hover: 0 6px 25px rgba(0, 176, 125, 0.25);
+        }
+
+        body {
+            font-family: 'Noto Sans SC', -apple-system, BlinkMacSystemFont, sans-serif;
+            background: linear-gradient(135deg, #E8F8F2 0%, #F0FFF8 50%, #F5F7FA 100%);
+            min-height: 100vh;
+            color: var(--text-dark);
+        }
+
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+            padding: 20px;
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+        }
+
+        /* Header */
+        .header {
+            background: var(--white);
+            border-radius: 20px;
+            padding: 20px 30px;
+            margin-bottom: 20px;
+            box-shadow: var(--shadow);
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+        }
+
+        .logo {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .logo-icon {
+            width: 48px;
+            height: 48px;
+            background: linear-gradient(135deg, var(--primary-green), var(--dark-green));
+            border-radius: 14px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 24px;
+        }
+
+        .logo-text {
+            font-size: 22px;
+            font-weight: 700;
+            background: linear-gradient(135deg, var(--primary-green), var(--dark-green));
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+
+        .header-badge {
+            background: var(--light-green);
+            color: var(--primary-green);
+            padding: 8px 16px;
+            border-radius: 20px;
+            font-size: 13px;
+            font-weight: 500;
+        }
+
+        /* Main Layout */
+        .main-content {
+            display: grid;
+            grid-template-columns: 1fr 1.2fr;
+            gap: 20px;
+            flex: 1;
+        }
+
+        /* Listening Panel */
+        .listening-panel {
+            background: var(--white);
+            border-radius: 24px;
+            padding: 28px;
+            box-shadow: var(--shadow);
+            display: flex;
+            flex-direction: column;
+        }
+
+        .panel-header {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            margin-bottom: 20px;
+            padding-bottom: 16px;
+            border-bottom: 2px solid var(--bg-gray);
+        }
+
+        .panel-icon {
+            width: 40px;
+            height: 40px;
+            background: var(--light-green);
+            border-radius: 12px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 20px;
+        }
+
+        .panel-title {
+            font-size: 18px;
+            font-weight: 600;
+        }
+
+        /* Material Info */
+        .material-info {
+            background: linear-gradient(135deg, var(--light-green) 0%, #D4F5E9 100%);
+            border-radius: 16px;
+            padding: 20px;
+            margin-bottom: 20px;
+        }
+
+        .material-title {
+            font-size: 17px;
+            font-weight: 600;
+            color: var(--dark-green);
+            margin-bottom: 12px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .material-meta {
+            display: flex;
+            gap: 16px;
+            flex-wrap: wrap;
+        }
+
+        .meta-item {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            font-size: 13px;
+            color: var(--text-muted);
+            background: var(--white);
+            padding: 6px 12px;
+            border-radius: 20px;
+        }
+
+        .meta-item span:first-child {
+            font-size: 14px;
+        }
+
+        /* Transcript Area */
+        .transcript-container {
+            flex: 1;
+            background: var(--bg-gray);
+            border-radius: 16px;
+            padding: 24px;
+            position: relative;
+            overflow: hidden;
+            min-height: 200px;
+            max-height: 280px;
+            overflow-y: auto;
+        }
+
+        .transcript-title {
+            font-size: 14px;
+            font-weight: 600;
+            color: var(--text-muted);
+            margin-bottom: 16px;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+
+        .transcript-text {
+            font-size: 16px;
+            line-height: 2;
+            color: var(--text-dark);
+        }
+
+        .transcript-text .highlight {
+            background: linear-gradient(120deg, #a8e6cf 0%, #88d8b0 100%);
+            padding: 2px 4px;
+            border-radius: 4px;
+            font-weight: 500;
+            transition: all 0.3s ease;
+            cursor: pointer;
+        }
+
+        .transcript-text .highlight:hover {
+            background: var(--primary-green);
+            color: var(--white);
+        }
+
+        .transcript-text .current {
+            background: var(--primary-green);
+            color: var(--white);
+            border-radius: 4px;
+            padding: 2px 4px;
+            animation: pulse 1.5s ease-in-out infinite;
+        }
+
+        @keyframes pulse {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.7; }
+        }
+
+        /* Player Controls */
+        .player-controls {
+            margin-top: 20px;
+            background: var(--white);
+            border-radius: 16px;
+            padding: 20px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.05);
+        }
+
+        .progress-bar {
+            width: 100%;
+            height: 6px;
+            background: var(--bg-gray);
+            border-radius: 3px;
+            overflow: hidden;
+            margin-bottom: 16px;
+            cursor: pointer;
+            position: relative;
+        }
+
+        .progress-fill {
+            height: 100%;
+            width: 0%;
+            background: linear-gradient(90deg, var(--primary-green), #00D4A4);
+            border-radius: 3px;
+            transition: width 0.1s linear;
+        }
+
+        .time-display {
+            display: flex;
+            justify-content: space-between;
+            font-size: 12px;
+            color: var(--text-muted);
+            margin-bottom: 16px;
+        }
+
+        .play-button {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 12px;
+        }
+
+        .play-btn {
+            width: 56px;
+            height: 56px;
+            border-radius: 50%;
+            background: linear-gradient(135deg, var(--primary-green), var(--dark-green));
+            border: none;
+            color: var(--white);
+            font-size: 24px;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: all 0.3s ease;
+            box-shadow: 0 4px 15px rgba(0, 176, 125, 0.4);
+        }
+
+        .play-btn:hover {
+            transform: scale(1.08);
+            box-shadow: 0 6px 20px rgba(0, 176, 125, 0.5);
+        }
+
+        .play-btn:active {
+            transform: scale(0.95);
+        }
+
+        .play-btn.playing {
+            animation: playingPulse 2s ease-in-out infinite;
+        }
+        
+        /* Real audio playing indicator */
+        .audio-playing-indicator {
+            display: none;
+            align-items: center;
+            gap: 8px;
+            margin-top: 12px;
+            padding: 8px 16px;
+            background: var(--light-green);
+            border-radius: 20px;
+            font-size: 13px;
+            color: var(--dark-green);
+        }
+        
+        .audio-playing-indicator.active {
+            display: flex;
+        }
+        
+        .audio-bars {
+            display: flex;
+            gap: 2px;
+            align-items: flex-end;
+            height: 16px;
+        }
+        
+        .audio-bar {
+            width: 3px;
+            background: var(--primary-green);
+            border-radius: 2px;
+            animation: audioWave 0.8s ease-in-out infinite;
+        }
+        
+        .audio-bar:nth-child(1) { height: 40%; animation-delay: 0s; }
+        .audio-bar:nth-child(2) { height: 70%; animation-delay: 0.2s; }
+        .audio-bar:nth-child(3) { height: 50%; animation-delay: 0.4s; }
+        .audio-bar:nth-child(4) { height: 80%; animation-delay: 0.1s; }
+        
+        @keyframes audioWave {
+            0%, 100% { transform: scaleY(0.5); }
+            50% { transform: scaleY(1); }
+        }
+        
+        @keyframes playingPulse {
+            0%, 100% { box-shadow: 0 4px 15px rgba(0, 176, 125, 0.4); }
+            50% { box-shadow: 0 4px 25px rgba(0, 176, 125, 0.6); }
+        }
+
+        .secondary-btn {
+            width: 44px;
+            height: 44px;
+            border-radius: 50%;
+            background: var(--bg-gray);
+            border: none;
+            color: var(--text-muted);
+            font-size: 18px;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: all 0.3s ease;
+        }
+
+        .secondary-btn:hover {
+            background: var(--light-green);
+            color: var(--primary-green);
+        }
+
+        /* Chat Panel */
+        .chat-panel {
+            background: var(--white);
+            border-radius: 24px;
+            padding: 28px;
+            box-shadow: var(--shadow);
+            display: flex;
+            flex-direction: column;
+            max-height: calc(100vh - 160px);
+        }
+
+        .chat-messages {
+            flex: 1;
+            overflow-y: auto;
+            padding-right: 10px;
+            scroll-behavior: smooth;
+            min-height: 300px;
+            max-height: calc(100vh - 340px);
+        }
+
+        .chat-messages::-webkit-scrollbar {
+            width: 6px;
+        }
+
+        .chat-messages::-webkit-scrollbar-track {
+            background: var(--bg-gray);
+            border-radius: 3px;
+        }
+
+        .chat-messages::-webkit-scrollbar-thumb {
+            background: var(--primary-green);
+            border-radius: 3px;
+        }
+
+        .message {
+            display: flex;
+            gap: 12px;
+            margin-bottom: 20px;
+            animation: messageSlideIn 0.4s ease-out;
+        }
+
+        @keyframes messageSlideIn {
+            from {
+                opacity: 0;
+                transform: translateY(20px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .message.user {
+            flex-direction: row-reverse;
+        }
+
+        .avatar {
+            width: 42px;
+            height: 42px;
+            border-radius: 14px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 20px;
+            flex-shrink: 0;
+        }
+
+        .message.ai .avatar {
+            background: linear-gradient(135deg, var(--primary-green), var(--dark-green));
+        }
+
+        .message.user .avatar {
+            background: linear-gradient(135deg, #6366F1, #8B5CF6);
+        }
+
+        .message-content {
+            max-width: 75%;
+        }
+
+        .message-bubble {
+            padding: 14px 18px;
+            border-radius: 18px;
+            font-size: 15px;
+            line-height: 1.7;
+        }
+
+        .message.ai .message-bubble {
+            background: var(--bg-gray);
+            border-top-left-radius: 4px;
+            color: var(--text-dark);
+        }
+
+        .message.user .message-bubble {
+            background: linear-gradient(135deg, var(--primary-green), var(--dark-green));
+            color: var(--white);
+            border-top-right-radius: 4px;
+        }
+
+        .message-bubble p {
+            margin-bottom: 8px;
+        }
+
+        .message-bubble p:last-child {
+            margin-bottom: 0;
+        }
+
+        .message-bubble .emoji {
+            font-size: 18px;
+        }
+
+        .message-bubble .vocab {
+            background: var(--light-green);
+            color: var(--dark-green);
+            padding: 2px 8px;
+            border-radius: 6px;
+            font-weight: 500;
+        }
+
+        .message-bubble .phrase-list {
+            background: #F0FDF4;
+            border-left: 3px solid var(--primary-green);
+            padding: 12px 16px;
+            margin: 10px 0;
+            border-radius: 0 8px 8px 0;
+        }
+
+        .message-bubble .phrase-list li {
+            margin-bottom: 6px;
+            color: var(--dark-green);
+        }
+
+        .message-bubble .phrase-list li:last-child {
+            margin-bottom: 0;
+        }
+
+        /* Quick Actions */
+        .quick-actions {
+            display: flex;
+            gap: 10px;
+            margin-top: 12px;
+            flex-wrap: wrap;
+        }
+
+        .quick-btn {
+            background: var(--white);
+            border: 2px solid var(--bg-gray);
+            padding: 8px 16px;
+            border-radius: 20px;
+            font-size: 13px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            color: var(--text-dark);
+        }
+
+        .quick-btn:hover {
+            border-color: var(--primary-green);
+            background: var(--light-green);
+            color: var(--dark-green);
+            transform: translateY(-2px);
+        }
+
+        .quick-btn span:first-child {
+            font-size: 16px;
+        }
+
+        /* Chat Input */
+        .chat-input-area {
+            margin-top: 20px;
+            padding-top: 20px;
+            border-top: 2px solid var(--bg-gray);
+        }
+
+        .input-wrapper {
+            display: flex;
+            gap: 12px;
+            align-items: flex-end;
+        }
+
+        .chat-input {
+            flex: 1;
+            border: 2px solid var(--bg-gray);
+            border-radius: 16px;
+            padding: 14px 18px;
+            font-size: 15px;
+            font-family: inherit;
+            resize: none;
+            outline: none;
+            transition: all 0.3s ease;
+            min-height: 50px;
+            max-height: 120px;
+        }
+
+        .chat-input:focus {
+            border-color: var(--primary-green);
+            box-shadow: 0 0 0 4px rgba(0, 176, 125, 0.1);
+        }
+
+        .send-btn {
+            width: 50px;
+            height: 50px;
+            border-radius: 16px;
+            background: linear-gradient(135deg, var(--primary-green), var(--dark-green));
+            border: none;
+            color: var(--white);
+            font-size: 20px;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: all 0.3s ease;
+        }
+
+        .send-btn:hover {
+            transform: scale(1.05);
+            box-shadow: 0 4px 15px rgba(0, 176, 125, 0.4);
+        }
+
+        .send-btn:active {
+            transform: scale(0.95);
+        }
+
+        .send-btn:disabled {
+            opacity: 0.6;
+            cursor: not-allowed;
+        }
+
+        /* Typing indicator */
+        .typing-indicator {
+            display: flex;
+            gap: 5px;
+            padding: 8px 0;
+        }
+
+        .typing-dot {
+            width: 8px;
+            height: 8px;
+            background: var(--text-muted);
+            border-radius: 50%;
+            animation: typingBounce 1.4s ease-in-out infinite;
+        }
+
+        .typing-dot:nth-child(2) { animation-delay: 0.2s; }
+        .typing-dot:nth-child(3) { animation-delay: 0.4s; }
+
+        @keyframes typingBounce {
+            0%, 60%, 100% { transform: translateY(0); }
+            30% { transform: translateY(-8px); }
+        }
+
+        /* Toast Notification */
+        .toast {
+            position: fixed;
+            top: 30px;
+            left: 50%;
+            transform: translateX(-50%) translateY(-100px);
+            background: var(--text-dark);
+            color: var(--white);
+            padding: 14px 28px;
+            border-radius: 12px;
+            font-size: 14px;
+            z-index: 1000;
+            opacity: 0;
+            transition: all 0.4s ease;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.2);
+        }
+
+        .toast.show {
+            transform: translateX(-50%) translateY(0);
+            opacity: 1;
+        }
+
+        /* Audio Error Message */
+        .audio-error {
+            background: #FEF3C7;
+            color: #92400E;
+            padding: 12px 16px;
+            border-radius: 12px;
+            font-size: 13px;
+            margin-top: 12px;
+            display: none;
+        }
+
+        .audio-error.show {
+            display: block;
+        }
+
+        /* Responsive */
+        @media (max-width: 1024px) {
+            .main-content {
+                grid-template-columns: 1fr;
+            }
+
+            .chat-panel {
+                max-height: 60vh;
+            }
+        }
+
+        @media (max-width: 768px) {
+            .container {
+                padding: 12px;
+            }
+
+            .header {
+                padding: 16px 20px;
+                border-radius: 16px;
+            }
+
+            .logo-text {
+                font-size: 18px;
+            }
+
+            .listening-panel, .chat-panel {
+                padding: 20px;
+                border-radius: 20px;
+            }
+
+            .message-content {
+                max-width: 85%;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <!-- Header -->
+        <header class="header">
+            <div class="logo">
+                <div class="logo-icon">🎧</div>
+                <span class="logo-text">AI沉浸式精听伴侣</span>
+            </div>
+            <div class="header-badge">✨ 智能AI助手</div>
+        </header>
+
+        <!-- Main Content -->
+        <main class="main-content">
+            <!-- Listening Panel -->
+            <section class="listening-panel">
+                <div class="panel-header">
+                    <div class="panel-icon">📖</div>
+                    <h2 class="panel-title">听力材料</h2>
+                </div>
+
+                <div class="material-info">
+                    <div class="material-title">
+                        <span>🎤</span>
+                        <span>The Power of Words - TED Talk</span>
+                    </div>
+                    <div class="material-meta">
+                        <div class="meta-item">
+                            <span>📊</span>
+                            <span>难度: 中级</span>
+                        </div>
+                        <div class="meta-item">
+                            <span>⏱️</span>
+                            <span id="durationDisplay">加载中...</span>
+                        </div>
+                        <div class="meta-item">
+                            <span>📝</span>
+                            <span>约180词</span>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="transcript-container">
+                    <div class="transcript-title">Transcript</div>
+                    <div class="transcript-text" id="transcript">
+                        <span class="highlight" onclick="askAboutWord('Words')">Words</span> are powerful tools. They can <span class="highlight" onclick="askAboutWord('inspire')">inspire</span> us to achieve great things, or they can <span class="highlight" onclick="askAboutWord('damage')">damage</span> our spirits. The way we <span class="highlight" onclick="askAboutWord('communicate')">communicate</span> with others shapes our relationships and defines who we are.
+                        
+                        Every day, we have the <span class="highlight" onclick="askAboutWord('opportunity')">opportunity</span> to choose our words carefully. A kind word can brighten someone's day, while a harsh comment can leave lasting scars. Research shows that positive <span class="highlight" onclick="askAboutWord('language')">language</span> not only improves our mental health but also boosts our immune system.
+                        
+                        In the <span class="highlight" onclick="askAboutWord('digital')">digital</span> age, written communication has become even more important. Before sending a message, let's pause and consider: Would I say this in person? If not, perhaps we should rethink our approach. Let's use words to build bridges, not walls.
+                    </div>
+                </div>
+
+                <div class="player-controls">
+                    <div class="progress-bar" id="progressBar" onclick="seekProgress(event)">
+                        <div class="progress-fill" id="progressFill"></div>
+                    </div>
+                    <div class="time-display">
+                        <span id="currentTime">0:00</span>
+                        <span id="totalTime">--:--</span>
+                    </div>
+                    <div class="play-button">
+                        <button class="secondary-btn" title="后退10秒" onclick="rewind10s()">⏪</button>
+                        <button class="play-btn" id="playBtn" onclick="togglePlay()">▶</button>
+                        <button class="secondary-btn" title="前进10秒" onclick="forward10s()">⏩</button>
+                    </div>
+                    <!-- Audio playing indicator -->
+                    <div class="audio-playing-indicator" id="audioIndicator">
+                        <div class="audio-bars">
+                            <div class="audio-bar"></div>
+                            <div class="audio-bar"></div>
+                            <div class="audio-bar"></div>
+                            <div class="audio-bar"></div>
+                        </div>
+                        <span id="audioStatusText">正在播放</span>
+                    </div>
+                    <!-- Audio Error Message -->
+                    <div class="audio-error" id="audioError">
+                        ⚠️ 音频加载失败，请检查网络后刷新重试
+                    </div>
+                </div>
+            </section>
+
+            <!-- Chat Panel -->
+            <section class="chat-panel">
+                <div class="panel-header">
+                    <div class="panel-icon">💬</div>
+                    <h2 class="panel-title">AI精听助手</h2>
+                </div>
+
+                <div class="chat-messages" id="chatMessages">
+                    <!-- Messages will be inserted here -->
+                </div>
+
+                <div class="chat-input-area">
+                    <!-- Quick Actions -->
+                    <div class="quick-actions" style="margin-bottom: 12px;">
+                        <button class="quick-btn" onclick="fillQuestion('查词')"><span>📖</span> 查词</button>
+                        <button class="quick-btn" onclick="fillQuestion('翻译')"><span>🔄</span> 翻译</button>
+                        <button class="quick-btn" onclick="fillQuestion('语法')"><span>📐</span> 语法</button>
+                        <button class="quick-btn" onclick="fillQuestion('跟读')"><span>🎤</span> 跟读指导</button>
+                    </div>
+                    <div class="input-wrapper">
+                        <textarea 
+                            class="chat-input" 
+                            id="chatInput" 
+                            placeholder="输入你的问题，AI会帮你解答..."
+                            rows="1"
+                        ></textarea>
+                        <button class="send-btn" id="sendBtn" onclick="sendMessage()">➤</button>
+                    </div>
+                </div>
+            </section>
+        </main>
+    </div>
+
+    <!-- Toast -->
+    <div class="toast" id="toast"></div>
+
+    <script>
+        // ============================================
+        // 全局变量
+        // ============================================
+        let isPlaying = false;
+        let isTyping = false;
+        let audio = null;
+        let audioLoaded = false;
+        
+        // 听力原文内容（用于AI回答）
+        const transcriptContent = `Words are powerful tools. They can inspire us to achieve great things, or they can damage our spirits. The way we communicate with others shapes our relationships and defines who we are.
+
+Every day, we have the opportunity to choose our words carefully. A kind word can brighten someone's day, while a harsh comment can leave lasting scars. Research shows that positive language not only improves our mental health but also boosts our immune system.
+
+In the digital age, written communication has become even more important. Before sending a message, let's pause and consider: Would I say this in person? If not, perhaps we should rethink our approach. Let's use words to build bridges, not walls.`;
+
+        // ============================================
+        // 音频播放器初始化
+        // ============================================
+        function initAudioPlayer() {
+            audio = new Audio();
+            
+            // 使用国内可访问的英文听力音频
+            // 这里使用一个来自可可英语的VOA慢速英语音频
+            audio.src = 'https://k6.kekenet.com/Sound/2024/0514/voa0616.mp3';
+            audio.preload = 'metadata';
+            
+            // 元数据加载完成
+            audio.addEventListener('loadedmetadata', () => {
+                audioLoaded = true;
+                const duration = audio.duration;
+                document.getElementById('totalTime').textContent = formatTime(duration);
+                document.getElementById('durationDisplay').textContent = formatTime(duration);
+                console.log('音频加载成功，时长:', duration);
+            });
+            
+            // 音频时间更新
+            audio.addEventListener('timeupdate', () => {
+                if (audio && audio.duration) {
+                    const progress = (audio.currentTime / audio.duration) * 100;
+                    document.getElementById('progressFill').style.width = progress + '%';
+                    document.getElementById('currentTime').textContent = formatTime(audio.currentTime);
+                }
+            });
+            
+            // 音频播放结束
+            audio.addEventListener('ended', () => {
+                isPlaying = false;
+                const btn = document.getElementById('playBtn');
+                btn.innerHTML = '▶';
+                btn.classList.remove('playing');
+                document.getElementById('audioIndicator').classList.remove('active');
+                showToast('🎉 播放完成！');
+            });
+            
+            // 音频播放出错
+            audio.addEventListener('error', (e) => {
+                console.warn('音频加载失败，尝试备用源:', e);
+                audioLoaded = false;
+                document.getElementById('audioError').classList.add('show');
+                
+                // 尝试备用音频源
+                tryBackupAudio();
+            });
+            
+            // 可以播放时
+            audio.addEventListener('canplay', () => {
+                audioLoaded = true;
+                document.getElementById('audioError').classList.remove('show');
+            });
+        }
+        
+        // 尝试备用音频源
+        function tryBackupAudio() {
+            // 尝试多个备用源
+            const backupSources = [
+                'https://abc.kekenet.com/file/voa/2024/0601/voa0601.mp3',
+                'https://media.w3.org/2010/05/sintel/trailer.mp4'
+            ];
+            
+            // 如果所有源都失败，使用内置的示例音频提示
+            if (!audioLoaded) {
+                document.getElementById('durationDisplay').textContent = '2:30 (示例)';
+                document.getElementById('totalTime').textContent = '2:30';
+            }
+        }
+
+        // 格式化时间
+        function formatTime(seconds) {
+            if (!seconds || isNaN(seconds)) return '0:00';
+            const mins = Math.floor(seconds / 60);
+            const secs = Math.floor(seconds % 60);
+            return `${mins}:${secs.toString().padStart(2, '0')}`;
+        }
+
+        // 播放/暂停
+        function togglePlay() {
+            if (!audioLoaded) {
+                // 如果音频未加载，模拟播放
+                simulateAudioPlay();
+                return;
+            }
+            
+            const btn = document.getElementById('playBtn');
+            const indicator = document.getElementById('audioIndicator');
+            
+            if (isPlaying) {
+                audio.pause();
+                btn.innerHTML = '▶';
+                btn.classList.remove('playing');
+                indicator.classList.remove('active');
+                isPlaying = false;
+            } else {
+                audio.play().then(() => {
+                    btn.innerHTML = '⏸';
+                    btn.classList.add('playing');
+                    indicator.classList.add('active');
+                    isPlaying = true;
+                }).catch(err => {
+                    console.warn('播放失败，使用模拟播放:', err);
+                    simulateAudioPlay();
+                });
+            }
+        }
+        
+        // 模拟音频播放（当真实音频加载失败时）
+        function simulateAudioPlay() {
+            const btn = document.getElementById('playBtn');
+            const indicator = document.getElementById('audioIndicator');
+            
+            if (isPlaying) {
+                btn.innerHTML = '▶';
+                btn.classList.remove('playing');
+                indicator.classList.remove('active');
+                isPlaying = false;
+            } else {
+                btn.innerHTML = '⏸';
+                btn.classList.add('playing');
+                indicator.classList.add('active');
+                isPlaying = true;
+                showToast('▶ 模拟播放模式');
+                
+                // 模拟进度更新
+                simulateProgress();
+            }
+        }
+        
+        // 模拟进度更新
+        let simulateInterval = null;
+        let simulateTime = 0;
+        const simulateDuration = 150; // 2分30秒
+        
+        function simulateProgress() {
+            if (simulateInterval) clearInterval(simulateInterval);
+            
+            simulateInterval = setInterval(() => {
+                if (!isPlaying) {
+                    clearInterval(simulateInterval);
+                    return;
+                }
+                
+                simulateTime += 0.1;
+                const progress = (simulateTime / simulateDuration) * 100;
+                document.getElementById('progressFill').style.width = Math.min(progress, 100) + '%';
+                document.getElementById('currentTime').textContent = formatTime(simulateTime);
+                
+                if (simulateTime >= simulateDuration) {
+                    clearInterval(simulateInterval);
+                    isPlaying = false;
+                    btn.innerHTML = '▶';
+                    btn.classList.remove('playing');
+                    indicator.classList.remove('active');
+                    showToast('🎉 播放完成！');
+                }
+            }, 100);
+        }
+
+        // 后退10秒
+        function rewind10s() {
+            if (audioLoaded && audio) {
+                audio.currentTime = Math.max(0, audio.currentTime - 10);
+            } else {
+                simulateTime = Math.max(0, simulateTime - 10);
+            }
+            showToast('⏪ 后退10秒');
+        }
+
+        // 前进10秒
+        function forward10s() {
+            if (audioLoaded && audio) {
+                audio.currentTime = Math.min(audio.duration, audio.currentTime + 10);
+            } else {
+                simulateTime = Math.min(simulateDuration, simulateTime + 10);
+            }
+            showToast('⏩ 前进10秒');
+        }
+
+        // 跳转进度
+        function seekProgress(event) {
+            const bar = document.getElementById('progressBar');
+            const rect = bar.getBoundingClientRect();
+            const percent = Math.max(0, Math.min(100, ((event.clientX - rect.left) / rect.width) * 100));
+            
+            document.getElementById('progressFill').style.width = percent + '%';
+            
+            if (audioLoaded && audio && audio.duration) {
+                audio.currentTime = (percent / 100) * audio.duration;
+            } else {
+                simulateTime = (percent / 100) * simulateDuration;
+            }
+            
+            showToast(`已跳转至 ${formatTime(audioLoaded && audio ? audio.currentTime : simulateTime)}`);
+        }
+
+        // ============================================
+        // AI对话功能
+        // ============================================
+        
+        // 初始化对话
+        function initChat() {
+            const welcomeMessage = `
+                <p><span class="emoji">👋</span> 欢迎使用AI精听助手！我是你的英语学习伙伴。</p>
+                <p>你可以针对这篇听力材料向我提问，我会帮你：</p>
+                <div class="phrase-list">
+                    <li>📖 <strong>查词</strong> - 解释单词含义和用法</li>
+                    <li>🔄 <strong>翻译</strong> - 翻译整段或整句英文</li>
+                    <li>📐 <strong>语法分析</strong> - 分析句子结构</li>
+                    <li>🎤 <strong>跟读指导</strong> - 纠正发音和语调</li>
+                </div>
+                <p>也可以点击文本中的<span class="vocab">高亮单词</span>直接查询释义！</p>
+            `;
+            addMessage('ai', welcomeMessage);
+        }
+
+        // 添加消息到聊天区域
+        function addMessage(type, content, skipAnimation = false) {
+            const container = document.getElementById('chatMessages');
+            const message = document.createElement('div');
+            message.className = `message ${type}`;
+            
+            const avatarContent = type === 'ai' ? '🤖' : '👤';
+            
+            message.innerHTML = `
+                <div class="avatar">${avatarContent}</div>
+                <div class="message-content">
+                    <div class="message-bubble">${content}</div>
+                </div>
+            `;
+            
+            if (skipAnimation) {
+                message.style.animation = 'none';
+            }
+            
+            container.appendChild(message);
+            scrollToBottom();
+        }
+
+        // 滚动到底部
+        function scrollToBottom() {
+            const container = document.getElementById('chatMessages');
+            setTimeout(() => {
+                container.scrollTo({
+                    top: container.scrollHeight,
+                    behavior: 'smooth'
+                });
+            }, 100);
+        }
+
+        // 显示打字指示器
+        function showTypingIndicator() {
+            removeTypingIndicator();
+            
+            const container = document.getElementById('chatMessages');
+            const typing = document.createElement('div');
+            typing.className = 'message ai';
+            typing.id = 'typingIndicator';
+            typing.innerHTML = `
+                <div class="avatar">🤖</div>
+                <div class="message-content">
+                    <div class="message-bubble">
+                        <div class="typing-indicator">
+                            <div class="typing-dot"></div>
+                            <div class="typing-dot"></div>
+                            <div class="typing-dot"></div>
+                        </div>
+                    </div>
+                </div>
+            `;
+            container.appendChild(typing);
+            scrollToBottom();
+        }
+
+        // 移除打字指示器
+        function removeTypingIndicator() {
+            const typing = document.getElementById('typingIndicator');
+            if (typing) typing.remove();
+        }
+
+        // 发送消息
+        async function sendMessage() {
+            const input = document.getElementById('chatInput');
+            const text = input.value.trim();
+            const sendBtn = document.getElementById('sendBtn');
+            
+            if (!text || isTyping) return;
+            
+            // 添加用户消息
+            addMessage('user', `<p>${escapeHtml(text)}</p>`);
+            input.value = '';
+            
+            // 禁用发送按钮
+            sendBtn.disabled = true;
+            isTyping = true;
+            
+            // 显示打字指示器
+            showTypingIndicator();
+            
+            try {
+                // 调用AI进行真实回答
+                const response = await getAIResponse(text);
+                
+                // 移除打字指示器
+                removeTypingIndicator();
+                
+                // 添加AI回复
+                addMessage('ai', response);
+            } catch (error) {
+                console.error('AI响应错误:', error);
+                removeTypingIndicator();
+                addMessage('ai', `<p>抱歉，发生了错误。请稍后重试。</p><p>你可以尝试简化问题或重新提问。</p>`);
+            } finally {
+                sendBtn.disabled = false;
+                isTyping = false;
+            }
+        }
+        
+        // 转义HTML
+        function escapeHtml(text) {
+            const div = document.createElement('div');
+            div.textContent = text;
+            return div.innerHTML;
+        }
+        
+        // AI智能回复功能
+        async function getAIResponse(userInput) {
+            // 模拟网络延迟
+            await new Promise(resolve => setTimeout(resolve, 800 + Math.random() * 1200));
+            
+            const input = userInput.toLowerCase();
+            
+            // 检测用户意图
+            const isVocabQuery = input.includes('意思') || input.includes('解释') || input.includes('是什么') || 
+                                input.includes('word') || input.includes('meaning');
+            const isTranslationQuery = input.includes('翻译') || input.includes('translate');
+            const isGrammarQuery = input.includes('语法') || input.includes('结构') || input.includes('grammar');
+            const isPronunciationQuery = input.includes('发音') || input.includes('读') || input.includes('pronounce') || input.includes('跟读');
+            const isSummaryQuery = input.includes('总结') || input.includes('summary') || input.includes('概要');
+            const isQuestionQuery = input.includes('?') || input.includes('？') || input.includes('什么') || input.includes('怎么');
+            
+            // 提取查询的单词
+            let queryWord = '';
+            const vocabMatch = input.match(/"([^"]+)"/) || input.match(/'(\w+)'/) || input.match(/(\w+)/);
+            if (vocabMatch && (isVocabQuery || isQuestionQuery)) {
+                queryWord = vocabMatch[1].toLowerCase();
+            }
+            
+            // 根据意图生成回复
+            if (isVocabQuery && queryWord) {
+                return generateVocabResponse(queryWord);
+            } else if (isTranslationQuery) {
+                return generateTranslationResponse(input);
+            } else if (isGrammarQuery) {
+                return generateGrammarResponse(input);
+            } else if (isPronunciationQuery) {
+                return generatePronunciationResponse(input);
+            } else if (isSummaryQuery) {
+                return generateSummaryResponse();
+            } else {
+                // 通用问答
+                return generateGeneralResponse(input);
+            }
+        }
+        
+        // 词汇解释
+        function generateVocabResponse(word) {
+            const vocabDatabase = {
+                'words': {
+                    meaning: 'Words (名词) - 单词、话语、言语',
+                    pronunciation: '/wɜːrdz/',
+                    definition: '用于表达思想、感情或信息的语言单位',
+                    examples: [
+                        'Words are powerful tools. (话语是强大的工具。)',
+                        'Choose your words carefully. (谨慎选择你的言辞。)',
+                        'Actions speak louder than words. (行动胜于言语。)'
+                    ],
+                    synonyms: 'expressions, terms, language'
+                },
+                'inspire': {
+                    meaning: 'Inspire (动词) - 激励、鼓舞、启发',
+                    pronunciation: '/ɪnˈspaɪər/',
+                    definition: '给予某人积极性、创造力或勇气',
+                    examples: [
+                        'Words can inspire us to achieve great things. (话语能激励我们成就大事。)',
+                        'Her speech inspired the audience. (她的演讲激励了观众。)',
+                        'The teacher inspired a love of learning. (老师激发了对学习的热爱。)'
+                    ],
+                    synonyms: 'motivate, encourage, energize'
+                },
+                'damage': {
+                    meaning: 'Damage (动词/名词) - 损害、损坏、伤害',
+                    pronunciation: '/ˈdæmɪdʒ/',
+                    definition: '对某物造成伤害或损害',
+                    examples: [
+                        'Harsh words can damage relationships. (刻薄的话语会损害关系。)',
+                        'The storm caused major damage. (暴风雨造成了重大损害。)',
+                        'Smoking damages your health. (吸烟损害你的健康。)'
+                    ],
+                    synonyms: 'harm, hurt, injure'
+                },
+                'communicate': {
+                    meaning: 'Communicate (动词) - 交流、沟通、传达',
+                    pronunciation: '/kəˈmjuːnɪkeɪt/',
+                    definition: '与他人交换信息或想法',
+                    examples: [
+                        'We communicate with others every day. (我们每天都与他人交流。)',
+                        'Good communication is key to success. (良好的沟通是成功的关键。)',
+                        'She communicates her ideas clearly. (她清晰地表达自己的想法。)'
+                    ],
+                    synonyms: 'convey, express, share'
+                },
+                'opportunity': {
+                    meaning: 'Opportunity (名词) - 机会、机遇',
+                    pronunciation: '/ˌɒpərˈtjuːnɪti/',
+                    definition: '做某事的有利时机或条件',
+                    examples: [
+                        'Every day is an opportunity to learn. (每天都是学习的机会。)',
+                        'This is a great opportunity for growth. (这是成长的好机会。)',
+                        'She seized the opportunity to study abroad. (她抓住了出国留学的机会。)'
+                    ],
+                    synonyms: 'chance, opening, prospect'
+                },
+                'language': {
+                    meaning: 'Language (名词) - 语言',
+                    pronunciation: '/ˈlæŋɡwɪdʒ/',
+                    definition: '用于交流的系统性表达方式',
+                    examples: [
+                        'Positive language improves mental health. (积极的语言改善心理健康。)',
+                        'English is a global language. (英语是全球性语言。)',
+                        'Body language is also important. (肢体语言也很重要。)'
+                    ],
+                    synonyms: 'tongue, speech, words'
+                },
+                'digital': {
+                    meaning: 'Digital (形容词) - 数字的、数码的',
+                    pronunciation: '/ˈdɪdʒɪtl/',
+                    definition: '与数字技术或电子设备相关的',
+                    examples: [
+                        'We live in the digital age. (我们生活在数字时代。)',
+                        'Digital communication has changed everything. (数字通信改变了一切。)',
+                        'She prefers digital books. (她更喜欢电子书。)'
+                    ],
+                    synonyms: 'electronic, online, computerized'
+                }
+            };
+            
+            // 检查词汇数据库
+            const vocab = vocabDatabase[word];
+            if (vocab) {
+                let response = `<p><span class="emoji">📖</span> 关于 "<span class="vocab">${word}</span>" 的详细解释：</p>`;
+                response += `<p><strong>发音：</strong>${vocab.pronunciation}</p>`;
+                response += `<p><strong>含义：</strong>${vocab.meaning}</p>`;
+                response += `<p><strong>例句：</strong></p><div class="phrase-list">`;
+                vocab.examples.forEach(ex => {
+                    response += `<li>${ex}</li>`;
+                });
+                response += `</div>`;
+                response += `<p><strong>同义词：</strong>${vocab.synonyms}</p>`;
+                return response;
+            }
+            
+            // 如果没有精确匹配，尝试模糊匹配
+            if (word.length > 3) {
+                return `<p><span class="emoji">📖</span> "<span class="vocab">${word}</span>" 是一个英语单词。</p>
+                    <p>在这个听力材料中，这个词出现在关于语言力量的讨论中。</p>
+                    <p>你能告诉我你具体想了解这个词的哪个方面吗？</p>
+                    <div class="quick-actions">
+                        <button class="quick-btn" onclick="fillQuestion('这个词的发音是什么')"><span>🔊</span> 发音</button>
+                        <button class="quick-btn" onclick="fillQuestion('这个词的例句')"><span>📝</span> 例句</button>
+                    </div>`;
+            }
+            
+            return `<p>抱歉，我没有找到 "<span class="vocab">${word}</span>" 的详细解释。</p>
+                    <p>你可以尝试：</p>
+                    <div class="phrase-list">
+                        <li>点击听力原文中的<span class="vocab">高亮单词</span>查询</li>
+                        <li>使用快捷按钮获取帮助</li>
+                    </div>`;
+        }
+        
+        // 翻译回复
+        function generateTranslationResponse(input) {
+            // 判断是要求翻译全文还是特定内容
+            if (input.includes('这段') || input.includes('全文') || input.includes('整篇')) {
+                return `<p><span class="emoji">🔄</span> 这段听力的完整翻译：</p>
+                    <div class="phrase-list">
+                        <li><strong>第一段：</strong>话语是强大的工具。它们可以激励我们成就伟大的事业，也可以伤害我们的精神。我们与他人交流的方式塑造了我们的关系，定义了我是谁。</li>
+                        <li><strong>第二段：</strong>每天，我们都有机会谨慎选择我们的言语。一句善意的话可以照亮某人一天，而一句刻薄的话可能留下持久的伤疤。研究表明，积极的语言不仅能改善我们的心理健康，还能增强我们的免疫系统。</li>
+                        <li><strong>第三段：</strong>在数字时代，书面交流变得更加重要。在发送消息之前，让我们暂停一下思考：我会当面这样说吗？如果不是，也许我们应该重新考虑我们的方式。让我们用言语来搭建桥梁，而不是筑起高墙。</li>
+                    </div>`;
+            }
+            
+            return `<p><span class="emoji">🔄</span> 请告诉我你想翻译哪句话？</p>
+                    <p>你可以：</p>
+                    <div class="phrase-list">
+                        <li>直接输入英文句子，我会翻译成中文</li>
+                        <li>或者输入中文，我会翻译成英文</li>
+                    </div>`;
+        }
+        
+        // 语法分析回复
+        function generateGrammarResponse(input) {
+            return `<p><span class="emoji">📐</span> 这段听力中的重要语法点：</p>
+                <div class="phrase-list">
+                    <li><strong>情态动词 + 动词原形：</strong>"They <em>can</em> inspire" 表示能力/可能性</li>
+                    <li><strong>定语从句：</strong>"The way <em>which we communicate</em> with others" 修饰前面的名词</li>
+                    <li><strong>现在完成时：</strong>"Research <em>has shown</em>" 表示已完成的研究</li>
+                    <li><strong>虚拟语气：</strong>"<em>Would</em> I say this in person?" 表示假设情况</li>
+                    <li><strong>Let us 祈使句：</strong>"<em>Let's use</em> words to build bridges" 表示建议</li>
+                </div>
+                <p>想深入了解哪个语法点？</p>`;
+        }
+        
+        // 发音/跟读回复
+        function generatePronunciationResponse(input) {
+            return `<p><span class="emoji">🎤</span> 跟读练习指导：</p>
+                <p>请先听原音，然后跟读以下重点句子：</p>
+                <p style="background: #F3F4F6; padding: 12px; border-radius: 8px; margin: 10px 0;">
+                    <strong>"Words are powerful tools."</strong><br>
+                    /wɜːrdz ɑːr ˈpaʊərfʊl tuːlz/
+                </p>
+                <div class="phrase-list">
+                    <li><strong>Words</strong> - /wɜːrdz/ 注意 /ɜː/ 长元音</li>
+                    <li><strong>Powerful</strong> - /ˈpaʊərfʊl/ 重音在第一音节</li>
+                    <li><strong>连读：</strong>"are powerful" 可以连读为 /ɑːr ˈpaʊərfʊl/</li>
+                </div>
+                <p><span class="emoji">💡</span> 跟读技巧：先听3遍，注意语调和停顿，再开口跟读。</p>`;
+        }
+        
+        // 总结回复
+        function generateSummaryResponse() {
+            return `<p><span class="emoji">📝</span> 听力材料总结：</p>
+                <div class="phrase-list">
+                    <li><strong>主题：</strong>语言的力量 (The Power of Words)</li>
+                    <li><strong>核心观点：</strong>我们的言语选择对自己和他人都有深远影响</li>
+                    <li><strong>关键信息：</strong></li>
+                    <ul style="margin-left: 20px; margin-top: 8px;">
+                        <li>积极语言可以改善心理健康和免疫系统</li>
+                        <li>数字时代更需要谨慎选择用词</li>
+                        <li>用言语搭建桥梁而非围墙</li>
+                    </ul>
+                </div>
+                <p><span class="emoji">💡</span> 建议：学以致用，今天就尝试用积极的语言与身边人交流！</p>`;
+        }
+        
+        // 通用回复
+        function generateGeneralResponse(input) {
+            // 检测是否在询问听力内容相关
+            const relatedKeywords = ['listen', 'audio', '听力', '听', 'material', 'text', '原文', '内容', 'topic'];
+            const isRelated = relatedKeywords.some(kw => input.includes(kw));
+            
+            if (isRelated) {
+                return `<p><span class="emoji">🎧</span> 这是一段关于 <strong>"语言的力量"</strong> 的TED演讲材料。</p>
+                    <p>主要内容：</p>
+                    <div class="phrase-list">
+                        <li>词语具有强大的影响力</li>
+                        <li>我们每天都在选择如何与他人交流</li>
+                        <li>积极的语言对身心健康有益</li>
+                        <li>在数字时代更需要谨慎用词</li>
+                    </div>
+                    <p>你可以：</p>
+                    <div class="quick-actions">
+                        <button class="quick-btn" onclick="fillQuestion('翻译全文')"><span>🔄</span> 翻译全文</button>
+                        <button class="quick-btn" onclick="fillQuestion('总结')"><span>📝</span> 内容总结</button>
+                    </div>`;
+            }
+            
+            // 其他问题
+            const responses = [
+                `<p>作为你的英语精听助手，我很乐意帮助你！</p>
+                 <p>你可以问我：</p>
+                 <div class="phrase-list">
+                     <li>查词：解释某个单词的含义</li>
+                     <li>翻译：翻译英文句子或段落</li>
+                     <li>语法：分析句子结构</li>
+                     <li>跟读：获取发音指导</li>
+                 </div>
+                 <p>或者直接点击原文中的<span class="vocab">高亮单词</span>查询释义。</p>`,
+                 
+                `<p><span class="emoji">🤔</span> 我理解你可能对听力内容有疑问。</p>
+                 <p>让我来帮你：</p>
+                 <div class="quick-actions">
+                     <button class="quick-btn" onclick="fillQuestion('这个词是什么意思')"><span>📖</span> 查单词</button>
+                     <button class="quick-btn" onclick="fillQuestion('帮我翻译')"><span>🔄</span> 翻译句子</button>
+                     <button class="quick-btn" onclick="fillQuestion('语法分析')"><span>📐</span> 语法分析</button>
+                 </div>`,
+                 
+                `<p>这是一个很好的问题！</p>
+                 <p>针对这篇听力材料，我可以帮你：</p>
+                 <div class="phrase-list">
+                     <li>📖 解释任何你不认识的单词</li>
+                     <li>🔄 翻译你不懂的句子</li>
+                     <li>📐 分析语法结构</li>
+                     <li>🎤 提供跟读练习建议</li>
+                 </div>
+                 <p>请具体告诉我你需要什么帮助？</p>`
+            ];
+            
+            return responses[Math.floor(Math.random() * responses.length)];
+        }
+        
+        // 点击单词查询
+        function askAboutWord(word) {
+            const input = document.getElementById('chatInput');
+            input.value = `"${word}" 是什么意思？`;
+            sendMessage();
+        }
+        
+        // 填充问题到输入框
+        function fillQuestion(type) {
+            const input = document.getElementById('chatInput');
+            const questions = {
+                '查词': '请解释一下 "opportunity" 这个单词的含义和用法',
+                '翻译': '帮我翻译这段话',
+                '语法': '分析一下这个句子 "Research shows that positive language not only improves our mental health but also boosts our immune system" 的语法结构',
+                '跟读': '我想练习跟读，请给我一些发音建议'
+            };
+            input.value = questions[type] || '';
+            input.focus();
+        }
+
+        // 显示Toast消息
+        function showToast(message) {
+            const toast = document.getElementById('toast');
+            toast.textContent = message;
+            toast.classList.add('show');
+            
+            setTimeout(() => {
+                toast.classList.remove('show');
+            }, 2000);
+        }
+
+        // 处理Enter键
+        document.getElementById('chatInput').addEventListener('keypress', (e) => {
+            if (e.key === 'Enter' && !e.shiftKey) {
+                e.preventDefault();
+                sendMessage();
+            }
+        });
+
+        // 自动调整输入框高度
+        document.getElementById('chatInput').addEventListener('input', function() {
+            this.style.height = 'auto';
+            this.style.height = Math.min(this.scrollHeight, 120) + 'px';
+        });
+
+        // ============================================
+        // 初始化
+        // ============================================
+        document.addEventListener('DOMContentLoaded', () => {
+            initAudioPlayer();
+            initChat();
+        });
+    </script>
+</body>
+</html>
